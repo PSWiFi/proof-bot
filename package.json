@@ -1,0 +1,23 @@
+{
+  "name": "todoo",
+  "version": "0.1.0",
+  "description": "To-do list discord.js client",
+  "license": "MIT",
+  "author": "LegoFigure11",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bufferutil": "^4.0.9",
+    "colors": "^1.4.0",
+    "discord.js": "^14.22.1",
+    "dotenv": "^17.2.3",
+    "zlib-sync": "^0.1.10"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.37.0",
+    "eslint": "^9.37.0"
+  }
+}

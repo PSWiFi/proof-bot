@@ -1,3 +1,8 @@
+databases/*
+!databases/a.txt
+
+/commands/todo
+
 # Logs
 logs
 *.log
