@@ -17,13 +17,17 @@ export const data = new SlashCommandBuilder()
         const hash = getHash(Date.now() + usn);
 
         var db = Storage.getDatabase("linked-users");
-        const lu = await Storage.checkLinkUser(usn);
-        console.log(lu);
+        let lu = await Storage.checkLinkUser(usn);
+
         if (!db.users) db.users = {};
         if (!db.users[interaction.user.id]) {
             db.users[interaction.user.id] = {};
         } else {
-            if (lu?.verified) db.users[interaction.user.id].verified = true;
+            if (!lu) lu = await Storage.checkLinkUser(db.users[interaction.user.id]?.username);
+            if (lu?.verified) {
+                db.users[interaction.user.id].verified = true;
+                await Storage.setDatabase("linked-users");
+            }
             if (db.users[interaction.user.id]?.verified && db.users[interaction.user.id]?.username) {
                 return interaction.reply({ content: `Your discord account is linked to \`${db.users[interaction.user.id].username}\`.` });
             } else {

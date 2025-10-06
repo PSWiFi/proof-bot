@@ -21,12 +21,13 @@ export async function execute(interaction) {
   });
 
   await interaction.deferReply();
-  execFile("node", [reloaddir], (err, stdout, strerr) => {
+  execFile("node", [reloaddir], (err, stdout, stderr) => {
     if (err) {
       interaction.editReply("Something went wrong re-deploying commands! Check the console for details.");
       console.error(err);
     }
     console.log(stdout);
+    console.error(stderr);
     interaction.editReply("Commands re-deployed!");
   });
 }
