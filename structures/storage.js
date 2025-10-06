@@ -2,9 +2,19 @@ import { readdirSync, readFileSync } from "node:fs";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import * as mongoose from "mongoose";
+import "dotenv/config";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const linkUserSchema = new mongoose.Schema({
+  _id: { type: String, required: true },
+  code: { type: String, required: true },
+  verified: { type: Boolean, required: true, default: false },
+  discord: { type: String, required: true },
+});
+
 
 export class Storage {
   databasesDir = path.join(path.resolve(__dirname, ".."), "databases");
@@ -13,6 +23,8 @@ export class Storage {
 
   currentSafeFileWrites = {};
   safeWriteFileQueue = {};
+
+  linkUser = mongoose.model("linkUser", linkUserSchema);
 
     importDatabases() {
     const databaseFiles = readdirSync(this.databasesDir);
@@ -104,9 +116,28 @@ export class Storage {
         );
       });
   }
+
+  async createLinkUser(name, code, discord) {
+    const doc = new this.linkUser({
+      _id: name,
+      code: code,
+      verified: false,
+      discord: discord,
+    });
+    return await doc.save();
+  }
+
+  async checkLinkUser(code) {
+    const entry = await this.linkUser.findById(code);
+    return entry;
+  }  
 }
 
 export const loadStorage = () => {
-    global.Storage = new Storage();
+  mongoose.connect(process.env.MONGO_URL);
+  global.Storage = new Storage();
+  global.toId = function toId(string) {
+    return string?.toLowerCase?.().replace(/[^a-z0-9]/g, "") ?? "";
+  };
 }
 
