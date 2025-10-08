@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, mkdir } from "node:fs";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,9 +15,11 @@ const linkUserSchema = new mongoose.Schema({
   discord: { type: String, required: true },
 });
 
+const GB = 1073741824;
 
 export class Storage {
   databasesDir = path.join(path.resolve(__dirname, ".."), "databases");
+  repoDir = path.join(path.resolve(__dirname, ".."), "subrepos");
 
   databases = [];
 
@@ -58,6 +60,40 @@ export class Storage {
       path.join(this.databasesDir, id + ".json"),
       contents
     ).catch(console.error);
+  }
+
+  async checkLocalRepoExists(repo) {
+    const dir = path.join(this.repoDir, "proof-" + repo);
+    try {
+      await fs.access(dir);
+      return true;
+    }
+    catch (e) {
+      return false;
+    }
+  }
+
+  async makeDirectory(repo, user) {
+    mkdir(`${this.repoDir}/proof-${repo}/${user}`, { recursive: true }, (err) => {
+      if (err) console.error(err);
+    })
+  }
+
+  /**
+   * 
+   * @param {string} reponame The name of the repository to stat
+   * @returns {[size: number, isDirectory: boolean, isAboveSizeCap: boolean] | [null, null, null]}
+   */
+  async statRepo(reponame) {
+    const dir = path.join(this.repoDir, "proof-" + reponame);
+    try {
+      const stats = await fs.stat(dir);
+      return [stats.size, stats.isDirectory(), stats.size > 4 * GB];
+    }
+    catch (e) {
+        console.error(e, "Error stating directory " + dir);
+        return [null, null, null];
+    }
   }
 
   async safeWriteFile(filepath, data) {
