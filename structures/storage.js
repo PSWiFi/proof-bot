@@ -63,18 +63,43 @@ export class Storage {
   }
 
   async checkLocalRepoExists(repo) {
-    const dir = path.join(this.repoDir, "proof-" + repo);
-    try {
-      await fs.access(dir);
-      return true;
-    }
-    catch (e) {
-      return false;
-    }
+    return new Promise(async (resolve, reject) => {
+      const dir = path.join(this.repoDir, "proof-" + repo);
+      try {
+       await fs.access(dir);
+        return resolve(true);
+      }
+      catch (e) {
+        return resolve(false);
+      }
+    });
+  }
+
+  async checkFolderExistsWithinRepo(args) {
+    return new Promise(async (resolve, reject) => {
+      if (!args[0]) return false;
+      let dir = path.join(this.repoDir, "proof-" + args[0]);
+      for (let i = 1; i < args.length; i++) {
+        dir = path.join(dir, args[i]);
+      }
+      try {
+        await fs.access(dir);
+        return resolve(true);
+      }
+      catch (e) {
+        return resolve(false);
+      }
+    });
   }
 
   async makeDirectory(repo, user) {
-    mkdir(`${this.repoDir}/proof-${repo}/${user}`, { recursive: true }, (err) => {
+      return await mkdir(`${this.repoDir}/proof-${repo}/${user}`, { recursive: true }, (err) => {
+        if (err) console.error(err);
+      });
+  }
+
+  async makeAlbum(repo, user, album) {
+    return await mkdir(`${this.repoDir}/proof-${repo}/${user}/${album}`, { recursive: true }, (err) => {
       if (err) console.error(err);
     })
   }
@@ -85,15 +110,17 @@ export class Storage {
    * @returns {[size: number, isDirectory: boolean, isAboveSizeCap: boolean] | [null, null, null]}
    */
   async statRepo(reponame) {
-    const dir = path.join(this.repoDir, "proof-" + reponame);
-    try {
-      const stats = await fs.stat(dir);
-      return [stats.size, stats.isDirectory(), stats.size > 4 * GB];
-    }
-    catch (e) {
+    return new Promise(async (resolve, reject) => {
+      const dir = path.join(this.repoDir, "proof-" + reponame);
+      try {
+        const stats = await fs.stat(dir);
+        resolve([stats.size, stats.isDirectory(), stats.size > 4 * GB]);
+      }
+      catch (e) {
         console.error(e, "Error stating directory " + dir);
-        return [null, null, null];
-    }
+        resolve([null, null, null]);
+      }
+    });
   }
 
   async safeWriteFile(filepath, data) {
