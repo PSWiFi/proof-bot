@@ -10,7 +10,7 @@ import { stdout } from "node:process";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages ] });
 
 loadStorage();
 Storage.importDatabases();
@@ -20,6 +20,10 @@ client.once(Events.ClientReady, (readyClient) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+
+client.on(Events.MessageCreate, (message) => {
+  console.log(message);
+});
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
